@@ -6,6 +6,7 @@ import { first, get, isEmpty } from 'lodash';
 import { defineMessages, useIntl } from 'react-intl';
 import styled from 'styled-components';
 
+import { GQLV2_PAYMENT_METHOD_TYPES } from '../../lib/constants/payment-methods';
 import { API_V2_CONTEXT, gqlV2 } from '../../lib/graphql/helpers';
 
 import Container from '../../components/Container';
@@ -21,6 +22,8 @@ import MessageBoxGraphqlError from '../MessageBoxGraphqlError';
 
 import { ERROR_MESSAGES } from './constants';
 import { generatePaymentMethodOptions } from './utils';
+
+export const NEW_CREDIT_CARD_KEY = 'newCreditCard';
 
 const PaymentMethodBox = styled(Container)`
   display: flex;
@@ -39,9 +42,9 @@ const paymentMethodsQuery = gqlV2/* GraphQL */ `
         id
         name
         data
-        service
         type
         expiryDate
+        providerType
         balance {
           valueInCents
           currency
@@ -74,33 +77,6 @@ const messages = defineMessages({
     defaultMessage: 'There are no payment methods available.',
   },
 });
-
-const getPaymentObject = (option, paymentObject) => {
-  const optionValue = option.value || option;
-  if (!option.name || option.name === 'PaymentMethod') {
-    return {
-      paymentMethod: optionValue,
-      title: optionValue.title,
-      key: optionValue.key,
-    };
-  } else if (option.name === 'newCreditCardInfo') {
-    return {
-      ...paymentObject,
-      paymentMethod: { type: 'creditcard', service: 'stripe' },
-      key: 'newCreditCard',
-      save: true,
-      isNew: true,
-      data: optionValue,
-      error: null,
-    };
-  } else if (option.name === 'save') {
-    return {
-      ...paymentObject,
-      save: optionValue.checked,
-      isNew: true,
-    };
-  }
-};
 
 const formatPaymentMethodError = (intl, collective, error) => {
   if (!messages[error.messageId]) {
@@ -143,19 +119,19 @@ const NewContributionFlowStepPayment = ({
     }
   }, [paymentMethods, stepProfile, stepDetails, collective]);
 
-  const setNewPaymentMethod = option => {
+  const setNewPaymentMethod = (key, paymentMethod) => {
     if (!paymentMethodsError) {
-      const newPaymentObject = getPaymentObject(option, stepPayment);
-      if (newPaymentObject) {
-        onChange({ stepPayment: newPaymentObject });
-      }
+      onChange({ stepPayment: { key, paymentMethod } });
     }
   };
 
   // Set default payment method
   useEffect(() => {
     if (!loading && !stepPayment && !isEmpty(paymentOptions)) {
-      setNewPaymentMethod(first(paymentOptions));
+      const firstOption = first(paymentOptions);
+      if (firstOption) {
+        setNewPaymentMethod(firstOption.key, firstOption.paymentMethod);
+      }
     }
   }, [paymentOptions, stepPayment, loading]);
 
@@ -175,12 +151,11 @@ const NewContributionFlowStepPayment = ({
           name="PaymentMethod"
           keyGetter="key"
           options={paymentOptions}
-          onChange={setNewPaymentMethod}
+          onChange={option => setNewPaymentMethod(option.key, option.value.paymentMethod)}
           value={stepPayment?.key || null}
         >
           {({ radio, checked, index, value }) => (
             <PaymentMethodBox
-              minheight={50}
               py={3}
               bg="white.full"
               px={3}
@@ -206,13 +181,18 @@ const NewContributionFlowStepPayment = ({
                   )}
                 </Flex>
               </Flex>
-              {value.key === 'newCreditCard' && checked && (
+              {value.key === NEW_CREDIT_CARD_KEY && checked && (
                 <Box my={3}>
                   <NewCreditCardForm
-                    name="newCreditCardInfo"
+                    name={NEW_CREDIT_CARD_KEY}
                     profileType={get(stepProfile, 'type')}
-                    onChange={setNewPaymentMethod}
                     hidePostalCode={hideCreditCardPostalCode}
+                    onChange={paymentMethod =>
+                      setNewPaymentMethod(NEW_CREDIT_CARD_KEY, {
+                        ...paymentMethod,
+                        type: GQLV2_PAYMENT_METHOD_TYPES.CREDIT_CARD,
+                      })
+                    }
                   />
                 </Box>
               )}
