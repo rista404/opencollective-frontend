@@ -351,6 +351,8 @@
   "contribute.profile.label": "Bijdragen Als:",
   "contribute.publicMessage": "Laat een publieke boodschap achter (Optioneel)",
   "contribute.publicMessage.placeholder": "Motiveer anderen om bij te dragen in 140 karakters :) ...",
+  "contribute.publicMessage.post": "Post message",
+  "contribute.publicMessage.postingAs": "Posting as",
   "contribute.step.contributeAs": "Bijdragen als",
   "contribute.step.details": "Details",
   "contribute.step.payment": "Betalingsinfo",

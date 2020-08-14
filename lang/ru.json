@@ -351,6 +351,8 @@
   "contribute.profile.label": "Сделать вклад как:",
   "contribute.publicMessage": "Оставьте публичное сообщение (Не обязательно)",
   "contribute.publicMessage.placeholder": "Мотивируйте других перевести пожертвование используя только 140 символов :) ...",
+  "contribute.publicMessage.post": "Post message",
+  "contribute.publicMessage.postingAs": "Posting as",
   "contribute.step.contributeAs": "Сделать вклад как",
   "contribute.step.details": "Детали",
   "contribute.step.payment": "Информация о платеже",

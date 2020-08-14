@@ -351,6 +351,8 @@
   "contribute.profile.label": "Contribuye:",
   "contribute.publicMessage": "Deja un mensaje público (opcional)",
   "contribute.publicMessage.placeholder": "Motivar a otros a contribuir en 140 caracteres :)...",
+  "contribute.publicMessage.post": "Post message",
+  "contribute.publicMessage.postingAs": "Posting as",
   "contribute.step.contributeAs": "Contribuye",
   "contribute.step.details": "Detalles",
   "contribute.step.payment": "Información de pagos",

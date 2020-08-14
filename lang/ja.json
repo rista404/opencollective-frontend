@@ -351,6 +351,8 @@
   "contribute.profile.label": "コントリビュート:",
   "contribute.publicMessage": "公開メッセージを残す (オプション)",
   "contribute.publicMessage.placeholder": "Motivate others to contribute in 140 characters :) ...",
+  "contribute.publicMessage.post": "Post message",
+  "contribute.publicMessage.postingAs": "Posting as",
   "contribute.step.contributeAs": "としてコントリビュート",
   "contribute.step.details": "詳細",
   "contribute.step.payment": "支払い情報",

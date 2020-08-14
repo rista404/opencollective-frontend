@@ -1,4 +1,14 @@
 """
+Exposes a URL that specifies the behaviour of this scalar.
+"""
+directive @specifiedBy(
+  """
+  The URL that specifies the behaviour of this scalar.
+  """
+  url: String!
+) on SCALAR
+
+"""
 Account interface shared by all kind of accounts (Bot, Collective, Event, User, Organization)
 """
 interface Account {
@@ -4129,6 +4139,11 @@ type Member {
   Total amount donated
   """
   totalDonations: Amount
+
+  """
+  Custom user message from member to the collective
+  """
+  publicMessage: String
   account: Account
 }
 
@@ -4157,6 +4172,11 @@ type MemberOf {
   Total amount donated
   """
   totalDonations: Amount
+
+  """
+  Custom user message from member to the collective
+  """
+  publicMessage: String
   account: Account
 }
 
@@ -4537,6 +4557,26 @@ type Mutation {
     """
     transaction: TransactionReferenceInput!
   ): Transaction!
+
+  """
+  Edit the public message for the given Member of a Collective
+  """
+  editPublicMessage(
+    """
+    Legacy id for the donating Collective
+    """
+    FromCollectiveLegacyId: Int
+
+    """
+    Encoded id for the receiving Collective
+    """
+    ToCollectiveId: String
+
+    """
+    New public message
+    """
+    message: String
+  ): Member!
 }
 
 """

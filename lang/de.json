@@ -351,6 +351,8 @@
   "contribute.profile.label": "Spende als:",
   "contribute.publicMessage": "Hinterlasse eine öffentliche Nachricht (optional)",
   "contribute.publicMessage.placeholder": "Motiviere andere zu Spenden in 140 Zeichen :) ...",
+  "contribute.publicMessage.post": "Post message",
+  "contribute.publicMessage.postingAs": "Posting as",
   "contribute.step.contributeAs": "Spende als",
   "contribute.step.details": "Details",
   "contribute.step.payment": "Zahlungsinformationen",
