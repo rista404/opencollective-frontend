@@ -1,8 +1,11 @@
 import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
+import { gql } from '@apollo/client';
+import { graphql } from '@apollo/client/react/hoc';
 import { Facebook } from '@styled-icons/fa-brands/Facebook';
 import { Twitter } from '@styled-icons/fa-brands/Twitter';
 import themeGet from '@styled-system/theme-get';
+import { get } from 'lodash';
 import { withRouter } from 'next/router';
 import { defineMessages, FormattedMessage, injectIntl } from 'react-intl';
 import styled, { css } from 'styled-components';
@@ -65,7 +68,17 @@ ShareLink.defaultProps = {
   target: '_blank',
 };
 
-// only meant until page is hooked up to actual success data
+// GraphQL
+const orderSuccessMemberQuery = gql`
+  query OrderSuccessMember($collectiveId: Int!, $memberCollectiveId: Int!, $tierId: Int) {
+    member(CollectiveId: $collectiveId, MemberCollectiveId: $memberCollectiveId, TierId: $tierId) {
+      id
+      publicMessage
+    }
+  }
+`;
+
+// test data only meant until page is hooked up to actual success data
 const exampleContribution = {
   totalDonations: 5000,
   amount: {
@@ -79,6 +92,23 @@ const exampleContribution = {
   exampleTier: 'Custom contribution',
 };
 
+const collective = {
+  name: 'LED Cats',
+  slug: 'led-cats',
+  legacyId: 10893,
+  //id:,
+  members: {
+    nodes: ['dummy node 1', 'dummy node 2'],
+  },
+};
+
+const stepProfile = {
+  name: 'Kate Beard',
+  type: 'USER',
+  id: 10884,
+};
+// end test data
+
 class NewContributionFlowSuccess extends React.Component {
   static propTypes = {
     collective: PropTypes.object,
@@ -86,6 +116,7 @@ class NewContributionFlowSuccess extends React.Component {
     intl: PropTypes.object,
     router: PropTypes.object,
     loadingLoggedInUser: PropTypes.bool,
+    data: PropTypes.object,
   };
 
   constructor(props) {
@@ -168,7 +199,9 @@ class NewContributionFlowSuccess extends React.Component {
       return (
         <CTAContainer
           display="flex"
+          mx={[3, 'none']}
           my={2}
+          mb={[4, 'none']}
           px={4}
           py={2}
           justifyContent="space-between"
@@ -206,23 +239,24 @@ class NewContributionFlowSuccess extends React.Component {
     );
   };
 
-  renderCommentForm = LoggedInUser => {
+  renderCommentForm = (LoggedInUser, publicMessage) => {
     if (!LoggedInUser) {
       return null;
     }
-    return <PublicMessageForm stepProfile={stepProfile} />;
+    return <PublicMessageForm stepProfile={stepProfile} publicMessage={publicMessage} collective={collective} />;
   };
 
   render() {
-    const { loadingLoggedInUser, LoggedInUser } = this.props;
+    const { loadingLoggedInUser, LoggedInUser, data } = this.props;
     const shareURL = `${process.env.WEBSITE_URL}${collective.path}`;
+    const publicMessage = data && get(data, 'member.publicMessage', null);
 
-    return loadingLoggedInUser ? (
+    return loadingLoggedInUser || data.loading ? (
       <Loading />
     ) : (
-      <Flex justifyContent="center" width={1} height={800}>
-        <ContainerWithImage display="flex" alignItems="center" justifyContent="center" width={1 / 2}>
-          <Flex flexDirection="column" alignItems="center" justifyContent="center" my={4}>
+      <Flex justifyContent="center" width={1} minHeight={[400, 800]} flexDirection={['column', 'row']}>
+        <ContainerWithImage display="flex" alignItems="center" justifyContent="center" width={[1, 1 / 2]}>
+          <Flex flexDirection="column" alignItems="center" justifyContent="center" my={4} width={1}>
             <H3 mb={3}>
               <FormattedMessage id="NewContributionFlow.Success.Header" defaultMessage="Thank you! 🎉" />
             </H3>
@@ -242,7 +276,7 @@ class NewContributionFlowSuccess extends React.Component {
               contribution={exampleContribution}
               my={2}
             />
-            <Box mt={3}>
+            <Box my={4}>
               <P fontColor="black.800" fontWeight={500}>
                 <FormattedMessage
                   id="NewContributionFlow.Success.DiscoverMore"
@@ -251,7 +285,7 @@ class NewContributionFlowSuccess extends React.Component {
                 />
               </P>
             </Box>
-            <Flex justifyContent="center" mt={3}>
+            <Flex justifyContent="center" mt={2}>
               <ShareLink href={tweetURL({ url: shareURL, text: `I've just donated to {collective.name}` })}>
                 <Twitter size="1.2em" color="#4E5052" />
                 <FormattedMessage id="tweetIt" defaultMessage="Tweet it" />
@@ -261,10 +295,10 @@ class NewContributionFlowSuccess extends React.Component {
                 <FormattedMessage id="shareIt" defaultMessage="Share it" />
               </ShareLink>
             </Flex>
-            {this.renderCommentForm(LoggedInUser)}
+            {this.renderCommentForm(LoggedInUser, publicMessage)}
           </Flex>
         </ContainerWithImage>
-        <Flex flexDirection="column" alignItems="center" justifyContent="center" width={1 / 2}>
+        <Flex flexDirection="column" alignItems="center" justifyContent="center" width={[1, 1 / 2]}>
           {this.renderCallsToAction()}
         </Flex>
       </Flex>
@@ -272,4 +306,15 @@ class NewContributionFlowSuccess extends React.Component {
   }
 }
 
-export default injectIntl(withUser(withRouter(NewContributionFlowSuccess)));
+const addOrderSuccessMemberData = graphql(orderSuccessMemberQuery, {
+  options: () => {
+    //const { collective, fromCollective, tier } = props.order;
+    const variables = { collectiveId: collective.legacyId, memberCollectiveId: stepProfile.id };
+    // if (tier) {
+    //   variables.tierId = tier.id;
+    // }
+    return { variables };
+  },
+});
+
+export default injectIntl(withUser(withRouter(addOrderSuccessMemberData(NewContributionFlowSuccess))));

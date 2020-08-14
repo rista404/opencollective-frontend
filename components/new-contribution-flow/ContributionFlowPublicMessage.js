@@ -1,22 +1,20 @@
-import React, { Fragment } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
-import { useMutation, useQuery } from '@apollo/client';
+import { useMutation } from '@apollo/client';
 import themeGet from '@styled-system/theme-get';
 import { Field, Form, Formik } from 'formik';
 import { defineMessages, FormattedMessage, injectIntl, useIntl } from 'react-intl';
-import styled, { css } from 'styled-components';
+import styled from 'styled-components';
 
 import { API_V2_CONTEXT, gqlV2 } from '../../lib/graphql/helpers';
 
 import Avatar from '../../components/Avatar';
 import Container from '../../components/Container';
-import { Box, Flex } from '../../components/Grid';
-import Loading from '../../components/Loading';
+import { Flex } from '../../components/Grid';
 import StyledButton from '../../components/StyledButton';
 import StyledInputField from '../../components/StyledInputField';
 import StyledTextarea from '../../components/StyledTextarea';
-import { H3, P, Span } from '../../components/Text';
-import { withUser } from '../../components/UserProvider';
+import { P } from '../../components/Text';
 
 const PUBLIC_MESSAGE_MAX_LENGTH = 20;
 
@@ -31,7 +29,11 @@ const PublicMessageContainer = styled(Container)`
 
 // GraphQL
 const postContributionPublicMessageMutation = gqlV2/* GraphQL */ `
-  mutation EditPublicMessage($FromCollectiveLegacyId: Int!, $ToCollectiveId: String!, $message: String) {
+  mutation NewContributionFlowEditPublicMessage(
+    $FromCollectiveLegacyId: Int!
+    $ToCollectiveId: String!
+    $message: String
+  ) {
     editPublicMessage(
       FromCollectiveLegacyId: $FromCollectiveLegacyId
       ToCollectiveId: $ToCollectiveId
@@ -39,13 +41,6 @@ const postContributionPublicMessageMutation = gqlV2/* GraphQL */ `
     ) {
       id
       publicMessage
-      tier {
-        id
-      }
-      collective {
-        id
-        slug
-      }
     }
   }
 `;
@@ -58,42 +53,40 @@ const messages = defineMessages({
   },
 });
 
-const ContributionFlowPublicMessage = ({ collective, stepProfile }) => {
+const ContributionFlowPublicMessage = ({ collective, stepProfile, publicMessage }) => {
   const intl = useIntl();
+
+  // GraphQL & data
   const [postPublicMessage] = useMutation(postContributionPublicMessageMutation, {
     context: API_V2_CONTEXT,
   });
 
+  // Formik
   const initialValues = {
-    publicMessage: '',
+    publicMessage: publicMessage || '',
   };
 
   const submitPublicMessage = async values => {
-    console.log('yeet');
-    console.log(values);
-    // await postPublicMessage({
-    //   variables: {
-    //     FromCollectiveLegacyId: stepProfile.collective.id,
-    //     ToCollectiveId: collective.id,
-    //     message: message,
-    //   },
-    // });
-    return;
+    const { publicMessage } = values;
+    const result = await postPublicMessage({
+      variables: {
+        FromCollectiveLegacyId: stepProfile.id,
+        ToCollectiveId: collective.id,
+        message: publicMessage,
+      },
+    });
+    return result;
   };
 
   return (
-    <PublicMessageContainer width={400} height={112} mt={2}>
+    <PublicMessageContainer width={[1, '400px']} flexShrink={1} height={112} mt={2}>
       <Formik initialValues={initialValues} onSubmit={submitPublicMessage}>
         {formik => {
           const { values, handleSubmit, isSubmitting } = formik;
 
           return (
             <Form>
-              <StyledInputField
-                name="publicMessage"
-                htmlFor="publicMessage"
-                // disabled={loading}
-              >
+              <StyledInputField name="publicMessage" htmlFor="publicMessage" disabled={isSubmitting}>
                 {inputProps => (
                   <Field
                     as={StyledTextarea}
@@ -124,12 +117,7 @@ const ContributionFlowPublicMessage = ({ collective, stepProfile }) => {
                   </Flex>
                 </Flex>
                 <Flex width={1 / 2} alignItems="center" justifyContent="flex-end">
-                  <StyledButton
-                    buttonSize="tiny"
-                    // loading={loading}
-                    type="submit"
-                    onSubmit={handleSubmit}
-                  >
+                  <StyledButton buttonSize="tiny" loading={isSubmitting} type="submit" onSubmit={handleSubmit}>
                     <FormattedMessage id="contribute.publicMessage.post" defaultMessage="Post message" />
                   </StyledButton>
                 </Flex>
@@ -145,7 +133,8 @@ const ContributionFlowPublicMessage = ({ collective, stepProfile }) => {
 ContributionFlowPublicMessage.propTypes = {
   collective: PropTypes.object,
   stepProfile: PropTypes.object,
+  publicMessage: PropTypes.string,
   intl: PropTypes.object,
 };
 
-export default injectIntl(withUser(ContributionFlowPublicMessage));
+export default injectIntl(ContributionFlowPublicMessage);
