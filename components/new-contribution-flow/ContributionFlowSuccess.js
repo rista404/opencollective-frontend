@@ -16,6 +16,7 @@ import StyledLink from '../../components/StyledLink';
 import { H3, P, Span } from '../../components/Text';
 import { withUser } from '../../components/UserProvider';
 
+import PublicMessageForm from './ContributionFlowPublicMessage';
 import ContributorCardWithTier from './ContributorCardWithTier';
 
 // Styled components
@@ -205,8 +206,15 @@ class NewContributionFlowSuccess extends React.Component {
     );
   };
 
+  renderCommentForm = LoggedInUser => {
+    if (!LoggedInUser) {
+      return null;
+    }
+    return <PublicMessageForm stepProfile={stepProfile} />;
+  };
+
   render() {
-    const { collective, loadingLoggedInUser } = this.props;
+    const { loadingLoggedInUser, LoggedInUser } = this.props;
     const shareURL = `${process.env.WEBSITE_URL}${collective.path}`;
 
     return loadingLoggedInUser ? (
@@ -253,7 +261,7 @@ class NewContributionFlowSuccess extends React.Component {
                 <FormattedMessage id="shareIt" defaultMessage="Share it" />
               </ShareLink>
             </Flex>
-            {/* comment box conditionally rendered here if LoggedInUser */}
+            {this.renderCommentForm(LoggedInUser)}
           </Flex>
         </ContainerWithImage>
         <Flex flexDirection="column" alignItems="center" justifyContent="center" width={1 / 2}>
