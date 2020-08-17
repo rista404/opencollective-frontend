@@ -14,6 +14,7 @@ import FormattedMoneyAmount from '../FormattedMoneyAmount';
 import { Flex } from '../Grid';
 import MessageBox from '../MessageBox';
 import StyledButton from '../StyledButton';
+import StyledInput from '../StyledInput';
 import StyledInputAmount from '../StyledInputAmount';
 import StyledInputField from '../StyledInputField';
 import StyledLink from '../StyledLink';
@@ -69,13 +70,16 @@ const generatePayoutOptions = (intl, payoutMethodType, collective) => {
   }
 };
 
-const DEFAULT_VALUES = { paymentProcessorFee: null };
+const DEFAULT_VALUES = { paymentProcessorFee: null, twoFactorAuthenticatorCode: null };
 
 const validate = values => {
   const errors = {};
   if (isNaN(values.paymentProcessorFee)) {
     errors.paymentProcessorFee = createError(ERROR.FORM_FIELD_PATTERN);
   }
+  // if (values.twoFactorAuthenticatorCode.length !== 6) {
+  //   errors.twoFactorAuthenticatorCode = createError(ERROR.FORM_FIELD_PATTERN);
+  // }
   return errors;
 };
 
@@ -205,6 +209,30 @@ const PayExpenseModal = ({ onClose, onSubmit, expense, collective, error }) => {
               </StyledLink>
             )}
           </MessageBox>
+        )}
+        {error && error.includes('2FA') && (
+          <StyledInputField
+            name="twoFactorAuthenticatorCode"
+            htmlFor="twoFactorAuthenticatorCode"
+            label="2FA"
+            value={formik.values.twoFactorAuthenticatorCode}
+            mt={2}
+            mb={3}
+          >
+            {inputProps => (
+              <StyledInput
+                {...inputProps}
+                minHeight={50}
+                fontSize="20px"
+                placeholder="123456"
+                pattern="[0-9]{6}"
+                autoFocus
+                onChange={e => {
+                  formik.setFieldValue('twoFactorAuthenticatorCode', e.target.value);
+                }}
+              />
+            )}
+          </StyledInputField>
         )}
         {!error && formik.values.forceManual && (
           <MessageBox type="warning" withIcon my={3}>
